@@ -88,8 +88,17 @@ if (!fs.existsSync(imagesDir)) {
 
 // 현재 날짜 포맷팅
 function getFormattedDate() {
-  const currentDate = new Date();
-  return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+  // 서울 시간대 기준으로 현재 날짜 가져오기
+  const now = new Date();
+  // UTC+9 (한국 시간) 적용
+  const koreanTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+  
+  const year = koreanTime.getUTCFullYear();
+  const month = String(koreanTime.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(koreanTime.getUTCDate()).padStart(2, '0');
+  
+  console.log(`현재 한국 시간: ${year}-${month}-${day}`);
+  return `${year}-${month}-${day}`;
 }
 
 // 이미 사용된 주제 확인 (최근 10개 파일 확인)
