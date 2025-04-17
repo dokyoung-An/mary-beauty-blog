@@ -1,0 +1,55 @@
+name: 자동 블로그 포스트 생성
+
+on:
+  schedule:
+    # 매일 0시, 3시, 6시, 9시, 12시, 15시, 18시, 21시에 실행 (UTC 기준)
+    - cron: '0 */3 * * *'
+  
+  # 수동으로 워크플로우를 실행할 수 있는 옵션
+  workflow_dispatch:
+
+jobs:
+  create-post:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v3
+        
+      - name: Node.js 설정
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: 의존성 설치
+        run: npm ci
+        
+      - name: Canvas 의존성 설치 (이미지 생성용)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev libjpeg-dev libpango1.0-dev libgif-dev build-essential g++
+      
+      - name: 새 포스트 생성
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PUBLIC_SITE_URL: ${{ secrets.PUBLIC_SITE_URL || 'http://localhost:4321' }}
+          PUBLIC_SITE_NAME: ${{ secrets.PUBLIC_SITE_NAME || '메리의 미수다' }}
+          PUBLIC_SITE_DESCRIPTION: ${{ secrets.PUBLIC_SITE_DESCRIPTION || '중년 여성의 아름다움과 건강을 위한 실용적인 정보를 제공하는 블로그' }}
+        run: node scripts/create-post-github-action.cjs
+      
+      - name: Git 사용자 설정
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      
+      - name: 변경사항 커밋
+        run: |
+          git add .
+          git diff --staged --quiet || git commit -m "자동 포스트 생성: $(date +'%Y-%m-%d %H:%M')"
+      
+      - name: GitHub에 푸시
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }} 

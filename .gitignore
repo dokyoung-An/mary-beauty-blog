@@ -1,30 +1,39 @@
-# 의존성 관련
-node_modules/
-.pnp
-.pnp.js
-
 # 빌드 결과물
 dist/
-.astro/
 .output/
 
-# 환경 변수
-.env
-.env.*
-!.env.example
-
-# 에디터 설정
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS 파일
-.DS_Store
-Thumbs.db
+# 종속성
+node_modules/
 
 # 로그
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# 환경 변수
+.env
+.env.*
+!.env.example
+
+# 맥OS 시스템 파일
+.DS_Store
+
+# 임시 파일들
+.tmp/
+.cache/
+.astro/
+
+# IDE 설정
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 노트 파일
+*.note
+notes/
