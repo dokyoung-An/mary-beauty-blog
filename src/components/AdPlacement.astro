@@ -1,0 +1,59 @@
+---
+// 광고 배치를 위한 컴포넌트
+// adSlot: 광고 슬롯 ID (Google AdSense에서 제공)
+export interface Props {
+  adSlot: string;
+}
+
+const { adSlot } = Astro.props;
+
+// 개발 환경에서는 가짜 광고를 보여주기 위한 플래그
+const isDev = import.meta.env.MODE === 'development';
+---
+
+<div class="ad-container my-6 relative overflow-hidden">
+  <div class="text-center text-xs text-gray-400 mb-1">광고</div>
+
+  {isDev ? (
+    <!-- 개발 환경용 가짜 광고 -->
+    <div class="bg-gray-100 border border-gray-200 rounded-md flex items-center justify-center" style="min-height: 200px;">
+      <div class="text-gray-500 text-sm">광고 미리보기 영역 (슬롯 ID: {adSlot})</div>
+    </div>
+  ) : (
+    <!-- 실제 환경용 Google AdSense 광고 -->
+    <ins
+      class="adsbygoogle"
+      style="display:block; min-height:200px"
+      data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+      data-ad-slot={adSlot}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    ></ins>
+  )}
+
+  <div class="text-right text-xs text-gray-400 mt-1">
+    <a href="#" class="hover:underline">광고 피드백</a>
+  </div>
+</div>
+
+{!isDev && (
+  <script>
+    // 광고 로드
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  </script>
+)}
+
+<style>
+  .ad-container {
+    width: 100%;
+    overflow: hidden;
+    clear: both;
+  }
+  
+  .ad-placeholder {
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+</style> 

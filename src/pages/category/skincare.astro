@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPostCard from '../../components/BlogPostCard.astro';
+
+// import.meta.glob을 사용하여 블로그 게시물 가져오기
+const postsImport = import.meta.glob('../../posts/*.{md,mdx}', { eager: true });
+const posts = Object.values(postsImport);
+
+// '피부관리' 태그가 있는 포스트만 필터링
+const categoryPosts = posts.filter(post => {
+  const tags = post.frontmatter.tags || [];
+  return tags.includes('피부관리');
+});
+
+// 날짜별로 정렬
+const sortedPosts = categoryPosts.sort((a, b) => {
+  // 유효한 날짜인지 확인
+  const dateA = new Date(a.frontmatter.date || new Date());
+  const dateB = new Date(b.frontmatter.date || new Date());
+  
+  // 날짜가 유효하지 않은 경우 현재 날짜 사용
+  const timeA = isNaN(dateA.getTime()) ? new Date().getTime() : dateA.getTime();
+  const timeB = isNaN(dateB.getTime()) ? new Date().getTime() : dateB.getTime();
+  
+  return timeB - timeA;
+});
+---
+
+<BaseLayout 
+  title="피부 관리 꿀팁" 
+  description="중년 여성을 위한 효과적인 피부 관리 방법과 안티에이징 정보"
+>
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-10 text-center">
+      <h1 class="text-3xl font-bold font-heading text-secondary-600 mb-4">피부 관리 꿀팁</h1>
+      <p class="text-gray-600 max-w-2xl mx-auto">
+        중년 여성의 피부 고민을 해결하는 효과적인 안티에이징 방법과 홈케어 팁을 소개합니다.
+      </p>
+    </div>
+    
+    <div class="mb-8 p-6 bg-secondary-50 rounded-lg border border-secondary-100">
+      <h2 class="text-xl font-bold font-heading text-secondary-700 mb-2">건강한 피부 관리의 기본</h2>
+      <ul class="list-disc pl-5 space-y-1 text-gray-700">
+        <li>꾸준한 자외선 차단제 사용은 노화 방지의 기본입니다.</li>
+        <li>충분한 수분 섭취와 보습은 건강한 피부의 핵심입니다.</li>
+        <li>과도한 클렌징은 피부 장벽을 약화시킬 수 있으니 주의하세요.</li>
+        <li>항산화 성분이 풍부한 식품 섭취가 피부 건강에 도움이 됩니다.</li>
+      </ul>
+    </div>
+    
+    {sortedPosts.length > 0 ? (
+      <div>
+        <h2 class="text-2xl font-bold font-heading text-gray-900 mb-6">피부 관리 관련 글</h2>
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {sortedPosts.map((post) => (
+            <BlogPostCard
+              url={`/posts/${post.file.split('/').pop()?.replace(/\.(md|mdx)$/, '')}`}
+              title={post.frontmatter.title}
+              description={post.frontmatter.description}
+              date={post.frontmatter.date || new Date().toISOString().split('T')[0]}
+              tags={post.frontmatter.tags}
+            />
+          ))}
+        </div>
+      </div>
+    ) : (
+      <div class="text-center py-12 text-gray-500">
+        <p>아직 이 카테고리에 게시된 글이 없습니다. 곧 새로운 콘텐츠가 업데이트될 예정입니다!</p>
+      </div>
+    )}
+  </div>
+</BaseLayout> 

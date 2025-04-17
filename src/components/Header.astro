@@ -1,0 +1,53 @@
+---
+// 헤더 컴포넌트
+const pathname = Astro.url.pathname;
+---
+
+<header class="bg-white shadow-sm sticky top-0 z-10">
+  <div class="container mx-auto py-4 px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center">
+      <a href="/" class="flex items-center">
+        <span class="text-2xl font-heading font-bold text-primary-600">메리의 미수다</span>
+      </a>
+      
+      <nav class="hidden md:block">
+        <ul class="flex space-x-6">
+          <li><a href="/" class={`font-medium ${pathname === '/' ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>홈</a></li>
+          <li><a href="/category/diet" class={`font-medium ${pathname.includes('/category/diet') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>다이어트</a></li>
+          <li><a href="/category/skincare" class={`font-medium ${pathname.includes('/category/skincare') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>피부관리</a></li>
+          <li><a href="/category/health" class={`font-medium ${pathname.includes('/category/health') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>건강정보</a></li>
+          <li><a href="/about" class={`font-medium ${pathname === '/about' ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>소개</a></li>
+        </ul>
+      </nav>
+      
+      <button id="mobile-menu-toggle" class="md:hidden text-gray-700 hover:text-primary-600 focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+    
+    <!-- 모바일 메뉴 -->
+    <div id="mobile-menu" class="md:hidden hidden mt-4 pb-2">
+      <ul class="space-y-2">
+        <li><a href="/" class={`block py-2 ${pathname === '/' ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>홈</a></li>
+        <li><a href="/category/diet" class={`block py-2 ${pathname.includes('/category/diet') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>다이어트</a></li>
+        <li><a href="/category/skincare" class={`block py-2 ${pathname.includes('/category/skincare') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>피부관리</a></li>
+        <li><a href="/category/health" class={`block py-2 ${pathname.includes('/category/health') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>건강정보</a></li>
+        <li><a href="/about" class={`block py-2 ${pathname === '/about' ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>소개</a></li>
+      </ul>
+    </div>
+  </div>
+</header>
+
+<script>
+  // 모바일 메뉴 토글 기능
+  const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  
+  if (mobileMenuToggle && mobileMenu) {
+    mobileMenuToggle.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+  }
+</script> 

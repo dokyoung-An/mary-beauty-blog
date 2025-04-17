@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPostCard from '../../components/BlogPostCard.astro';
+
+// import.meta.glob을 사용하여 블로그 게시물 가져오기
+const postsImport = import.meta.glob('../../posts/*.{md,mdx}', { eager: true });
+const posts = Object.values(postsImport);
+
+// '건강' 태그가 있는 포스트만 필터링
+const categoryPosts = posts.filter(post => {
+  const tags = post.frontmatter.tags || [];
+  return tags.includes('건강');
+});
+
+// 날짜별로 정렬
+const sortedPosts = categoryPosts.sort((a, b) => {
+  // 유효한 날짜인지 확인
+  const dateA = new Date(a.frontmatter.date || new Date());
+  const dateB = new Date(b.frontmatter.date || new Date());
+  
+  // 날짜가 유효하지 않은 경우 현재 날짜 사용
+  const timeA = isNaN(dateA.getTime()) ? new Date().getTime() : dateA.getTime();
+  const timeB = isNaN(dateB.getTime()) ? new Date().getTime() : dateB.getTime();
+  
+  return timeB - timeA;
+});
+---
+
+<BaseLayout 
+  title="건강한 중년 생활" 
+  description="중년 여성을 위한 건강 정보와 질환 예방 및 관리 방법"
+>
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-10 text-center">
+      <h1 class="text-3xl font-bold font-heading text-primary-600 mb-4">건강한 중년 생활</h1>
+      <p class="text-gray-600 max-w-2xl mx-auto">
+        중년 여성에게 흔히 나타나는 건강 이슈와 질환을 예방하고 관리하는 방법을 알려드립니다.
+      </p>
+    </div>
+    
+    <div class="mb-8 p-6 bg-primary-50 rounded-lg border border-primary-100">
+      <h2 class="text-xl font-bold font-heading text-primary-700 mb-2">중년 건강 관리의 핵심</h2>
+      <ul class="list-disc pl-5 space-y-1 text-gray-700">
+        <li>정기적인 건강 검진으로 질병을 조기에 발견하세요.</li>
+        <li>적절한 영양 섭취와 규칙적인 운동으로 기초 체력을 유지하세요.</li>
+        <li>충분한 수면과 스트레스 관리는 건강 유지의 필수 요소입니다.</li>
+        <li>만성 질환이 있는 경우 의사의 조언에 따라 관리하는 것이 중요합니다.</li>
+      </ul>
+    </div>
+    
+    {sortedPosts.length > 0 ? (
+      <div>
+        <h2 class="text-2xl font-bold font-heading text-gray-900 mb-6">건강 관련 글</h2>
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {sortedPosts.map((post) => (
+            <BlogPostCard
+              url={`/posts/${post.file.split('/').pop()?.replace(/\.(md|mdx)$/, '')}`}
+              title={post.frontmatter.title}
+              description={post.frontmatter.description}
+              date={post.frontmatter.date || new Date().toISOString().split('T')[0]}
+              tags={post.frontmatter.tags}
+            />
+          ))}
+        </div>
+      </div>
+    ) : (
+      <div class="text-center py-12 text-gray-500">
+        <p>아직 이 카테고리에 게시된 글이 없습니다. 곧 새로운 콘텐츠가 업데이트될 예정입니다!</p>
+      </div>
+    )}
+  </div>
+</BaseLayout> 

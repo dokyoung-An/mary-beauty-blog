@@ -1,0 +1,30 @@
+# 의존성 관련
+node_modules/
+.pnp
+.pnp.js
+
+# 빌드 결과물
+dist/
+.astro/
+.output/
+
+# 환경 변수
+.env
+.env.*
+!.env.example
+
+# 에디터 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS 파일
+.DS_Store
+Thumbs.db
+
+# 로그
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

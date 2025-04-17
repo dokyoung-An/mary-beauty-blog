@@ -1,0 +1,41 @@
+{
+  "name": "mary-beauty-talk",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "건강하고 아름다운 중년 생활을 위해 알아야할 정보들",
+  "main": "index.js",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "generate-post": "node scripts/auto-post-generator.js",
+    "publish-post": "node scripts/auto-publish.js"
+  },
+  "keywords": [
+    "blog",
+    "finance",
+    "money",
+    "astro"
+  ],
+  "author": "Mary",
+  "license": "ISC",
+  "dependencies": {
+    "@astrojs/mdx": "^2.0.0",
+    "@astrojs/react": "^4.2.4",
+    "@astrojs/sitemap": "^3.0.0",
+    "@astrojs/tailwind": "^5.0.0",
+    "astro": "^4.0.0",
+    "dotenv": "^16.5.0",
+    "node-fetch": "^2.7.0",
+    "openai": "^4.95.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "slugify": "^1.6.6",
+    "tailwindcss": "^3.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "astro-expressive-code": "^0.41.1"
+  }
+}

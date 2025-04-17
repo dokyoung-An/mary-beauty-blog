@@ -1,0 +1,45 @@
+name: 자동 블로그 포스트 생성 및 배포
+
+on:
+  schedule:
+    # 3시간마다 실행 (UTC 기준)
+    - cron: '0 */3 * * *'
+  workflow_dispatch:  # 수동 실행 옵션
+
+jobs:
+  create-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # 전체 히스토리 가져오기
+      
+      - name: Node.js 설정
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: 의존성 설치
+        run: npm ci
+      
+      - name: Git 사용자 설정
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+      
+      - name: 자동 포스트 생성 및 푸시
+        run: node scripts/auto-publish.js
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      
+      - name: 사이트 빌드
+        run: npm run build
+      
+      - name: GitHub Pages 배포
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist 

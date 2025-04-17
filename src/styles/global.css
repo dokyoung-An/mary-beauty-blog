@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Pretendard', sans-serif;
+  }
+
+  body {
+    color: #333;
+    line-height: 1.6;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md transition-colors duration-300;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-500 text-white hover:bg-primary-600;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md overflow-hidden border border-gray-100;
+  }
+  
+  .card-hover {
+    @apply hover:shadow-lg transition-shadow duration-300;
+  }
+}
+
+.prose {
+  @apply max-w-none;
+}
+
+.prose h1 {
+  @apply text-3xl font-bold font-heading text-gray-900 mb-4 mt-8;
+}
+
+.prose h2 {
+  @apply text-2xl font-bold font-heading text-gray-900 mb-3 mt-6;
+}
+
+.prose h3 {
+  @apply text-xl font-bold font-heading text-gray-900 mb-3 mt-6;
+}
+
+.prose p {
+  @apply mb-4 text-gray-700;
+}
+
+.prose ul, .prose ol {
+  @apply mb-4 ml-6;
+}
+
+.prose li {
+  @apply mb-1;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-primary-300 pl-4 py-2 my-4 bg-primary-50 text-gray-700 italic;
+} 

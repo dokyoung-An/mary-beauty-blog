@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPostCard from '../../components/BlogPostCard.astro';
+
+// import.meta.glob을 사용하여 블로그 게시물 가져오기
+const postsImport = import.meta.glob('../../posts/*.{md,mdx}', { eager: true });
+const posts = Object.values(postsImport);
+
+// '다이어트' 태그가 있는 포스트만 필터링
+const categoryPosts = posts.filter(post => {
+  const tags = post.frontmatter.tags || [];
+  return tags.includes('다이어트');
+});
+
+// 날짜별로 정렬
+const sortedPosts = categoryPosts.sort((a, b) => {
+  // 유효한 날짜인지 확인
+  const dateA = new Date(a.frontmatter.date || new Date());
+  const dateB = new Date(b.frontmatter.date || new Date());
+  
+  // 날짜가 유효하지 않은 경우 현재 날짜 사용
+  const timeA = isNaN(dateA.getTime()) ? new Date().getTime() : dateA.getTime();
+  const timeB = isNaN(dateB.getTime()) ? new Date().getTime() : dateB.getTime();
+  
+  return timeB - timeA;
+});
+---
+
+<BaseLayout 
+  title="다이어트 팁" 
+  description="중년 여성을 위한 효과적인 다이어트 방법과 건강한 체중 관리 정보"
+>
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-10 text-center">
+      <h1 class="text-3xl font-bold font-heading text-primary-600 mb-4">체형별 맞춤 다이어트</h1>
+      <p class="text-gray-600 max-w-2xl mx-auto">
+        중년 여성의 체형과 건강 상태에 맞는 효과적인 다이어트 방법과 지속 가능한 체중 관리 정보를 제공합니다.
+      </p>
+    </div>
+    
+    <div class="mb-8 p-6 bg-primary-50 rounded-lg border border-primary-100">
+      <h2 class="text-xl font-bold font-heading text-primary-700 mb-2">건강한 다이어트의 원칙</h2>
+      <ul class="list-disc pl-5 space-y-1 text-gray-700">
+        <li>급격한 체중 감량보다는 건강한 생활 습관 형성에 집중하세요.</li>
+        <li>자신의 체형과 건강 상태를 고려한 맞춤형 접근이 중요합니다.</li>
+        <li>단백질과 식이섬유가 풍부한 균형 잡힌 식단을 유지하세요.</li>
+        <li>규칙적인 운동과 충분한 수면이 체중 관리에 필수적입니다.</li>
+      </ul>
+    </div>
+    
+    {sortedPosts.length > 0 ? (
+      <div>
+        <h2 class="text-2xl font-bold font-heading text-gray-900 mb-6">다이어트 관련 글</h2>
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {sortedPosts.map((post) => (
+            <BlogPostCard
+              url={`/posts/${post.file.split('/').pop()?.replace(/\.(md|mdx)$/, '')}`}
+              title={post.frontmatter.title}
+              description={post.frontmatter.description}
+              date={post.frontmatter.date || new Date().toISOString().split('T')[0]}
+              tags={post.frontmatter.tags}
+            />
+          ))}
+        </div>
+      </div>
+    ) : (
+      <div class="text-center py-12 text-gray-500">
+        <p>아직 이 카테고리에 게시된 글이 없습니다. 곧 새로운 콘텐츠가 업데이트될 예정입니다!</p>
+      </div>
+    )}
+  </div>
+</BaseLayout> 

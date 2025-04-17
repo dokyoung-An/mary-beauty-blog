@@ -1,0 +1,155 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { formatDate } from '../utils/formatDate';
+import AdPlacement from '../components/AdPlacement.astro';
+
+const { frontmatter } = Astro.props;
+const { title, description, date, tags, image } = frontmatter;
+
+// 날짜 형식 오류 해결을 위한 안전한 날짜 파싱 처리
+let formattedDate = '게시일 정보 없음';
+let isoDate = undefined;
+
+if (date) {
+  try {
+    // ISO 형식의 날짜 문자열로 변환
+    const dateObj = new Date(date);
+    if (!isNaN(dateObj.getTime())) {
+      isoDate = dateObj.toISOString();
+      formattedDate = formatDate(date);
+    }
+  } catch (error) {
+    console.error('날짜 파싱 오류:', error);
+  }
+}
+
+// 이미지 체크 - 없으면 기본 이미지 사용
+const featuredImage = image || '/images/default-cover.jpg';
+---
+
+<BaseLayout 
+  title={title} 
+  description={description} 
+  image={featuredImage}
+  article={true}
+  publishedTime={isoDate}
+  modifiedTime={isoDate}
+  tags={tags}>
+  <article class="max-w-3xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold font-heading text-gray-900 mb-3">{title}</h1>
+      <p class="text-gray-500 mb-4">{formattedDate}</p>
+      
+      {tags && tags.length > 0 && (
+        <div class="flex flex-wrap gap-2 mb-6">
+          {tags.map((tag) => (
+            <span class="bg-primary-100 text-primary-800 text-xs font-medium px-2.5 py-0.5 rounded">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+      
+      {/* 상단 광고 배너 */}
+      <div class="my-6">
+        <AdPlacement adSlot="top-banner" />
+      </div>
+    </div>
+    
+    <div class="prose prose-lg max-w-none ad-content-container">
+      <slot />
+    </div>
+    
+    {/* 하단 광고 배너 */}
+    <div class="mt-8">
+      <AdPlacement adSlot="bottom-banner" />
+    </div>
+    
+    {/* 관련 글 섹션 */}
+    <div class="mt-12 pt-8 border-t border-gray-200">
+      <h2 class="text-2xl font-bold font-heading text-gray-900 mb-4">이런 글도 읽어보세요</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="p-4 border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 bg-white">
+          <h3 class="text-lg font-semibold text-primary-600 hover:text-primary-700">다른 추천 글 제목</h3>
+          <p class="text-gray-600 text-sm mt-1">관련 글 요약 설명이 들어갑니다.</p>
+        </div>
+        <div class="p-4 border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 bg-white">
+          <h3 class="text-lg font-semibold text-primary-600 hover:text-primary-700">다른 추천 글 제목</h3>
+          <p class="text-gray-600 text-sm mt-1">관련 글 요약 설명이 들어갑니다.</p>
+        </div>
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<script>
+  // 페이지 로드 후 광고 자리 주석을 실제 광고로 교체
+  document.addEventListener('DOMContentLoaded', () => {
+    const contentContainer = document.querySelector('.ad-content-container');
+    if (!contentContainer) return;
+    
+    // HTML 내용을 가져옴
+    let html = contentContainer.innerHTML;
+    
+    // 주석을 찾아 광고로 대체하는 함수
+    const replaceAdPlaceholder = (placeholder, adSlot) => {
+      const placeholderRegex = new RegExp(`<!-- ${placeholder} -->`, 'g');
+      if (html.includes(`<!-- ${placeholder} -->`)) {
+        // 광고 HTML 생성
+        const adHTML = `
+          <div class="ad-container my-6">
+            <div class="text-center text-xs text-gray-400 mb-1">광고</div>
+            <ins class="adsbygoogle"
+                style="display:block; min-height:200px"
+                data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                data-ad-slot="${adSlot}"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+            <div class="text-right text-xs text-gray-400 mt-1">
+              <a href="#" class="hover:underline">광고 피드백</a>
+            </div>
+          </div>
+        `;
+        
+        // 광고 HTML로 대체
+        html = html.replace(placeholderRegex, adHTML);
+      }
+    };
+    
+    // 광고 위치 대체
+    replaceAdPlaceholder('AD_PLACE_1', 'XXXXXXXXXX1');
+    replaceAdPlaceholder('AD_PLACE_2', 'XXXXXXXXXX2');
+    replaceAdPlaceholder('AD_PLACE_3', 'XXXXXXXXXX3');
+    
+    // 대체된 HTML 적용
+    contentContainer.innerHTML = html;
+    
+    // 광고 로드
+    if (window.adsbygoogle && typeof window.adsbygoogle.push === 'function') {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    }
+    
+    // 애드센스 스크립트 로드
+    const loadAdSense = () => {
+      // 이미 로드되었는지 확인
+      if (document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]')) {
+        return;
+      }
+      
+      const script = document.createElement('script');
+      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+      script.async = true;
+      script.onload = () => {
+        // 모든 광고 로드
+        const ads = document.querySelectorAll('.adsbygoogle');
+        ads.forEach(() => (window.adsbygoogle = window.adsbygoogle || []).push({}));
+      };
+      document.head.appendChild(script);
+    };
+    
+    // 프로덕션 환경에서만 광고 로드
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      loadAdSense();
+    }
+  });
+</script> 
