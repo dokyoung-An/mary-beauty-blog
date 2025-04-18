@@ -25,6 +25,41 @@ if (date) {
 
 // 이미지 체크 - 없으면 기본 이미지 사용
 const featuredImage = image || '/images/default-cover.jpg';
+
+// 관련 게시물 가져오기
+const allPosts = await Astro.glob('../posts/*.{md,mdx}');
+const currentPath = Astro.url.pathname;
+
+// 현재 게시물을 제외한 다른 게시물들
+const otherPosts = allPosts.filter(post => {
+  const postPath = `/posts/${post.file.split('/').pop().replace(/\.(md|mdx)$/, '')}`;
+  return postPath !== currentPath;
+});
+
+// 같은 태그를 가진 게시물 찾기
+let relatedPosts = [];
+if (tags && tags.length > 0) {
+  relatedPosts = otherPosts.filter(post => {
+    const postTags = post.frontmatter.tags || [];
+    return postTags.some(tag => tags.includes(tag));
+  });
+}
+
+// 관련 게시물이 2개 미만이면 최신 게시물로 채우기
+if (relatedPosts.length < 2) {
+  const recentPosts = otherPosts
+    .sort((a, b) => {
+      const dateA = new Date(a.frontmatter.date || new Date());
+      const dateB = new Date(b.frontmatter.date || new Date());
+      return dateB.getTime() - dateA.getTime();
+    })
+    .filter(post => !relatedPosts.includes(post));
+  
+  relatedPosts = [...relatedPosts, ...recentPosts].slice(0, 2);
+}
+
+// 표시할 관련 게시물 최대 2개
+const displayRelatedPosts = relatedPosts.slice(0, 2);
 ---
 
 <BaseLayout 
@@ -69,14 +104,22 @@ const featuredImage = image || '/images/default-cover.jpg';
     <div class="mt-12 pt-8 border-t border-gray-200">
       <h2 class="text-2xl font-bold font-heading text-gray-900 mb-4">이런 글도 읽어보세요</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="p-4 border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 bg-white">
-          <h3 class="text-lg font-semibold text-primary-600 hover:text-primary-700">다른 추천 글 제목</h3>
-          <p class="text-gray-600 text-sm mt-1">관련 글 요약 설명이 들어갑니다.</p>
-        </div>
-        <div class="p-4 border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 bg-white">
-          <h3 class="text-lg font-semibold text-primary-600 hover:text-primary-700">다른 추천 글 제목</h3>
-          <p class="text-gray-600 text-sm mt-1">관련 글 요약 설명이 들어갑니다.</p>
-        </div>
+        {displayRelatedPosts.map(post => {
+          const postPath = `/posts/${post.file.split('/').pop().replace(/\.(md|mdx)$/, '')}`;
+          return (
+            <a href={postPath} class="p-4 border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 bg-white">
+              <h3 class="text-lg font-semibold text-primary-600 hover:text-primary-700">{post.frontmatter.title}</h3>
+              <p class="text-gray-600 text-sm mt-1 line-clamp-2">{post.frontmatter.description}</p>
+              {post.frontmatter.tags && (
+                <div class="flex flex-wrap gap-1 mt-2">
+                  {post.frontmatter.tags.slice(0, 2).map(tag => (
+                    <span class="bg-primary-50 text-primary-700 text-xs px-1.5 py-0.5 rounded">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </a>
+          );
+        })}
       </div>
     </div>
   </article>
