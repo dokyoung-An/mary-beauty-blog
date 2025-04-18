@@ -13,6 +13,7 @@ const pathname = Astro.url.pathname;
       <nav class="hidden md:block">
         <ul class="flex space-x-6">
           <li><a href="/" class={`font-medium ${pathname === '/' ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>홈</a></li>
+          <li><a href="/블로그/1" class={`font-medium ${pathname.includes('/블로그/') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>블로그</a></li>
           <li><a href="/category/diet" class={`font-medium ${pathname.includes('/category/diet') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>다이어트</a></li>
           <li><a href="/category/skincare" class={`font-medium ${pathname.includes('/category/skincare') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>피부관리</a></li>
           <li><a href="/category/health" class={`font-medium ${pathname.includes('/category/health') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>건강정보</a></li>
@@ -31,6 +32,7 @@ const pathname = Astro.url.pathname;
     <div id="mobile-menu" class="md:hidden hidden mt-4 pb-2">
       <ul class="space-y-2">
         <li><a href="/" class={`block py-2 ${pathname === '/' ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>홈</a></li>
+        <li><a href="/블로그/1" class={`block py-2 ${pathname.includes('/블로그/') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>블로그</a></li>
         <li><a href="/category/diet" class={`block py-2 ${pathname.includes('/category/diet') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>다이어트</a></li>
         <li><a href="/category/skincare" class={`block py-2 ${pathname.includes('/category/skincare') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>피부관리</a></li>
         <li><a href="/category/health" class={`block py-2 ${pathname.includes('/category/health') ? 'text-primary-600' : 'text-gray-700 hover:text-primary-500'}`}>건강정보</a></li>

@@ -1,0 +1,111 @@
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPostCard from '../../components/BlogPostCard.astro';
+
+export async function getStaticPaths({ paginate }) {
+  // 모든 블로그 게시물 가져오기
+  const postsImport = import.meta.glob('../../posts/*.{md,mdx}', { eager: true });
+  const posts = Object.values(postsImport);
+  
+  // 날짜 기준으로 정렬
+  const sortedPosts = posts.sort((a, b) => {
+    const dateA = new Date(a.frontmatter.date || new Date());
+    const dateB = new Date(b.frontmatter.date || new Date());
+    
+    const timeA = isNaN(dateA.getTime()) ? new Date().getTime() : dateA.getTime();
+    const timeB = isNaN(dateB.getTime()) ? new Date().getTime() : dateB.getTime();
+    
+    return timeB - timeA;
+  });
+  
+  // 한 페이지에 9개씩 표시
+  return paginate(sortedPosts, {
+    pageSize: 9
+  });
+}
+
+// 현재 페이지 정보 가져오기
+const { page } = Astro.props;
+const totalPages = page.lastPage;
+const currentPage = page.currentPage;
+
+<BaseLayout 
+  title={`블로그 - ${currentPage} 페이지`} 
+  description="메리의 뷰티수다 - 중년 여성의 아름다움과 건강을 위한 모든 게시물"
+>
+  <section>
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold font-heading text-primary-600 mb-2">모든 게시물</h1>
+      <div class="flex justify-between items-center">
+        <p class="text-gray-500">총 {page.total}개의 게시물이 있습니다.</p>
+        <p class="text-gray-500">{currentPage} / {totalPages} 페이지</p>
+      </div>
+    </div>
+    
+    {page.data.length > 0 ? (
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-12">
+        {page.data.map((post) => (
+          <BlogPostCard
+            url={`/posts/${post.file.split('/').pop()?.replace(/\.(md|mdx)$/, '')}`}
+            title={post.frontmatter.title}
+            description={post.frontmatter.description}
+            date={post.frontmatter.date || new Date().toISOString().split('T')[0]}
+            tags={post.frontmatter.tags}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-12 text-gray-500">
+        <p>아직 게시된 글이 없습니다. 곧 새로운 콘텐츠가 업데이트될 예정입니다!</p>
+      </div>
+    )}
+    
+    <!-- 페이지네이션 -->
+    {totalPages > 1 && (
+      <div class="flex justify-center items-center space-x-2 mb-12">
+        {currentPage > 1 && (
+          <a 
+            href={`/블로그/${currentPage - 1}`} 
+            class="px-4 py-2 border border-primary-300 rounded-md hover:bg-primary-50 transition-colors"
+          >
+            이전
+          </a>
+        )}
+        
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+          <a
+            href={`/블로그/${pageNum}`}
+            class={`px-4 py-2 border rounded-md transition-colors ${
+              pageNum === currentPage
+                ? 'bg-primary-500 text-white border-primary-500'
+                : 'border-primary-300 hover:bg-primary-50'
+            }`}
+          >
+            {pageNum}
+          </a>
+        ))}
+        
+        {currentPage < totalPages && (
+          <a 
+            href={`/블로그/${currentPage + 1}`} 
+            class="px-4 py-2 border border-primary-300 rounded-md hover:bg-primary-50 transition-colors"
+          >
+            다음
+          </a>
+        )}
+      </div>
+    )}
+
+    <!-- 홈으로 돌아가기 버튼 -->
+    <div class="text-center mt-4">
+      <a href="/" class="inline-block px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors">
+        홈으로 돌아가기
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .pagination a {
+    display: inline-block;
+  }
+</style> 
