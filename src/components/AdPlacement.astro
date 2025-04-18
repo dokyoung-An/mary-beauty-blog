@@ -9,34 +9,46 @@ const { adSlot } = Astro.props;
 
 // 개발 환경에서는 가짜 광고를 보여주기 위한 플래그
 const isDev = import.meta.env.MODE === 'development';
+
+// 애드센스 승인 여부 (심사 전에는 false로 설정)
+const isAdSenseApproved = false; // 승인 후 true로 변경
 ---
 
-<div class="ad-container my-6 relative overflow-hidden">
-  <div class="text-center text-xs text-gray-400 mb-1">광고</div>
-
-  {isDev ? (
-    <!-- 개발 환경용 가짜 광고 -->
-    <div class="bg-gray-100 border border-gray-200 rounded-md flex items-center justify-center" style="min-height: 200px;">
-      <div class="text-gray-500 text-sm">광고 미리보기 영역 (슬롯 ID: {adSlot})</div>
-    </div>
+<div class="ad-container my-6 relative overflow-hidden ad-placeholder">
+  {isAdSenseApproved ? (
+    <>
+      <div class="text-center text-xs text-gray-400 mb-1">광고</div>
+      
+      {isDev ? (
+        <!-- 개발 환경용 가짜 광고 -->
+        <div class="bg-gray-100 border border-gray-200 rounded-md flex items-center justify-center" style="min-height: 200px;">
+          <div class="text-gray-500 text-sm">광고 미리보기 영역 (슬롯 ID: {adSlot})</div>
+        </div>
+      ) : (
+        <!-- 실제 환경용 Google AdSense 광고 -->
+        <ins
+          class="adsbygoogle"
+          style="display:block; min-height:200px"
+          data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+          data-ad-slot={adSlot}
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        ></ins>
+      )}
+      
+      <div class="text-right text-xs text-gray-400 mt-1">
+        <a href="#" class="hover:underline">광고 피드백</a>
+      </div>
+    </>
   ) : (
-    <!-- 실제 환경용 Google AdSense 광고 -->
-    <ins
-      class="adsbygoogle"
-      style="display:block; min-height:200px"
-      data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-      data-ad-slot={adSlot}
-      data-ad-format="auto"
-      data-full-width-responsive="true"
-    ></ins>
+    <!-- 애드센스 승인 전 콘텐츠 구분용 공간 -->
+    <div class="bg-gray-50 border border-gray-100 p-4 text-center text-gray-400" style="min-height: 100px;">
+      <p>이 영역은 콘텐츠 구분을 위한 공간입니다</p>
+    </div>
   )}
-
-  <div class="text-right text-xs text-gray-400 mt-1">
-    <a href="#" class="hover:underline">광고 피드백</a>
-  </div>
 </div>
 
-{!isDev && (
+{!isDev && isAdSenseApproved && (
   <script>
     // 광고 로드
     (window.adsbygoogle = window.adsbygoogle || []).push({});
