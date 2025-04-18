@@ -1,11 +1,18 @@
 const fs = require('fs');
 const path = require('path');
 const { createCanvas } = require('canvas');
+const { OpenAI } = require('openai');
+
+// OpenAI API 초기화
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 // 환경 변수 확인 및 로깅
 console.log('GitHub Actions에서 실행 중입니다...');
 console.log(`SITE_URL: ${process.env.PUBLIC_SITE_URL || 'http://localhost:4321'}`);
 console.log(`SITE_NAME: ${process.env.PUBLIC_SITE_NAME || '메리의 미수다'}`);
+console.log(`OPENAI_API_KEY가 설정되었는지 확인: ${process.env.OPENAI_API_KEY ? '설정됨' : '설정되지 않음'}`);
 
 // 포스트 주제 목록
 const postTopics = [
@@ -194,11 +201,51 @@ function createImage(title, slug) {
   }
 }
 
-// 포스트 내용 생성 (예시 콘텐츠)
+// DALL-E로 이미지 생성하는 함수 추가
+async function generateDallEImage(prompt, slug) {
+  try {
+    console.log(`DALL-E로 이미지 생성 중: ${prompt}`);
+    
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt,
+      n: 1,
+      size: "1024x1024",
+      quality: "standard",
+      response_format: "b64_json"
+    });
+    
+    // 응답에서 base64 이미지 데이터 추출
+    const imageData = response.data[0].b64_json;
+    if (!imageData) {
+      throw new Error('이미지 데이터가 없습니다.');
+      return null;
+    }
+    
+    // 이미지 파일명 설정
+    const imageFileName = `${slug}-dalle-${Date.now()}.png`;
+    const imageFilePath = path.join(imagesDir, imageFileName);
+    
+    // 이미지 저장
+    fs.writeFileSync(imageFilePath, Buffer.from(imageData, 'base64'));
+    console.log(`DALL-E 이미지가 생성되었습니다: ${imageFilePath}`);
+    
+    // 상대 경로 반환
+    return `/images/posts/${imageFileName}`;
+  } catch (error) {
+    console.error('DALL-E 이미지 생성 오류:', error);
+    // 오류 발생 시 캔버스로 생성한 이미지 사용
+    return createImage(prompt, slug);
+  }
+}
+
+// 포스트 내용 생성 함수 수정 - 이미지 마커 추가
 function generatePostContent(topic) {
   return `# ${topic.title}
 
 중년기에 접어들면 신체적 변화와 함께 영양소 요구량의 변화도 찾아옵니다. 이 시기에는 건강한 생활 습관을 통해 활력을 유지하고 만성질환 위험을 줄이는 것이 중요합니다.
+
+<!-- IMAGE_PLACE_MAIN -->
 
 ## 첫 번째 핵심 포인트
 
@@ -209,6 +256,8 @@ function generatePostContent(topic) {
 - 첫 번째 팁을 실천해 보세요.
 - 두 번째 팁은 일상에서 쉽게 적용할 수 있습니다.
 - 세 번째 팁은 장기적인 건강에 도움이 됩니다.
+
+<!-- IMAGE_PLACE_1 -->
 
 ## 두 번째 핵심 포인트
 
@@ -227,6 +276,8 @@ function generatePostContent(topic) {
 - 정기적인 건강 검진을 받으세요.
 - 연령에 맞는 영양소를 섭취하세요.
 - 적절한 운동을 꾸준히 하세요.
+
+<!-- IMAGE_PLACE_2 -->
 
 ## 네 번째 핵심 포인트
 
@@ -248,8 +299,8 @@ function generatePostContent(topic) {
 건강한 중년을 위한 첫걸음은 바로 오늘 시작됩니다.`;
 }
 
-// 포스트 생성 함수
-function createPost() {
+// 포스트 생성 함수 수정 - DALL-E 이미지 생성 추가
+async function createPost() {
   try {
     // 최근 사용된 주제 가져오기
     const usedTopics = getUsedTopics();
@@ -275,8 +326,52 @@ function createPost() {
     const postFileName = `${formattedDate}-${topic.slug}.md`;
     const postFilePath = path.join(postsDir, postFileName);
     
-    // 이미지 생성
-    const imagePath = createImage(topic.title, topic.slug);
+    // 포스트 내용 생성
+    let postContent = generatePostContent(topic);
+    
+    // 커버 이미지 생성 (fallback으로 canvas 사용)
+    let coverImage = await createImage(topic.title, topic.slug);
+    
+    // DALL-E 이미지 생성 (API 키가 있는 경우)
+    if (process.env.OPENAI_API_KEY) {
+      try {
+        // 커버 이미지 생성
+        const coverPrompt = `"${topic.title}"에 어울리는 커버 이미지. 한국 중년 여성의 건강과 관련된 밝고 긍정적인 이미지. 키워드: ${topic.tags.join(', ')}. 텍스트 없이, 깨끗하고 전문적인 스타일로 만들어주세요.`;
+        const dalleImage = await generateDallEImage(coverPrompt, `${topic.slug}-cover`);
+        if (dalleImage) {
+          coverImage = dalleImage;
+        }
+        
+        // 첫 번째 추가 이미지
+        const prompt1 = `"${topic.title}"에 관련된 실용적인 팁이나 방법을 시각화한 이미지. 한국 중년 여성에게 적합한 건강 관련 이미지. 키워드: ${topic.tags.join(', ')}. 텍스트 없이, 밝고 명확한 스타일로 제작해주세요.`;
+        const image1 = await generateDallEImage(prompt1, `${topic.slug}-content1`);
+        if (image1) {
+          postContent = postContent.replace('<!-- IMAGE_PLACE_1 -->', `\n\n![${topic.title} 관련 이미지](${image1})\n\n`);
+        }
+        
+        // 두 번째 추가 이미지
+        const prompt2 = `"${topic.title}"의 효과나 결과를 보여주는 이미지. 한국 중년 여성을 위한 건강한 라이프스타일. 키워드: ${topic.tags.join(', ')}. 텍스트 없이, 고품질 사진 스타일로 만들어주세요.`;
+        const image2 = await generateDallEImage(prompt2, `${topic.slug}-content2`);
+        if (image2) {
+          postContent = postContent.replace('<!-- IMAGE_PLACE_2 -->', `\n\n![${topic.title} 효과 이미지](${image2})\n\n`);
+        }
+        
+        // 메인 이미지
+        const mainPrompt = `"${topic.title}"에 대한 메인 개념을 시각화한 이미지. 한국 중년 여성의 건강과 웰빙을 강조. 키워드: ${topic.tags.join(', ')}. 텍스트 없이, 깔끔하고 전문적인 스타일로 만들어주세요.`;
+        const mainImage = await generateDallEImage(mainPrompt, `${topic.slug}-main`);
+        if (mainImage) {
+          postContent = postContent.replace('<!-- IMAGE_PLACE_MAIN -->', `\n\n![${topic.title} 메인 이미지](${mainImage})\n\n`);
+        }
+      } catch (error) {
+        console.error('DALL-E 이미지 생성 중 오류:', error);
+        // 오류 발생 시 이미지 마커 제거
+        postContent = postContent.replace(/<!-- IMAGE_PLACE_\w+ -->/g, '');
+      }
+    } else {
+      console.log('OpenAI API 키가 설정되지 않아 DALL-E 이미지를 생성하지 않습니다.');
+      // 이미지 마커 제거
+      postContent = postContent.replace(/<!-- IMAGE_PLACE_\w+ -->/g, '');
+    }
     
     // 포스트 frontmatter 생성
     const frontmatter = `---
@@ -284,22 +379,22 @@ title: '${topic.title}'
 description: '${topic.description}'
 date: '${formattedDate}'
 tags: [${topic.tags.map(tag => `'${tag}'`).join(', ')}]
-image: '${imagePath}'
+image: '${coverImage}'
 ---`;
 
-    // 포스트 내용 생성
-    const postContent = `${frontmatter}
+    // 최종 포스트 내용 생성
+    const finalContent = `${frontmatter}
 
-${generatePostContent(topic)}`;
+${postContent}`;
 
     // 파일에 포스트 내용 작성
-    fs.writeFileSync(postFilePath, postContent);
+    fs.writeFileSync(postFilePath, finalContent);
     console.log(`포스트가 생성되었습니다: ${postFilePath}`);
     
     return {
       title: topic.title,
       path: postFilePath,
-      imagePath: imagePath
+      imagePath: coverImage
     };
   } catch (error) {
     console.error('포스트 생성 중 오류 발생:', error);
@@ -307,12 +402,17 @@ ${generatePostContent(topic)}`;
   }
 }
 
-// 실행
-try {
-  console.log('GitHub Actions에서 새 포스트를 생성합니다...');
-  const result = createPost();
-  console.log(`포스트 "${result.title}" 생성 완료`);
-} catch (error) {
-  console.error('스크립트 실행 중 오류 발생:', error);
-  process.exit(1); // 오류 발생 시 종료 코드 1로 종료
-} 
+// 실행 함수를 async로 변경
+async function run() {
+  try {
+    console.log('GitHub Actions에서 새 포스트를 생성합니다...');
+    const result = await createPost();
+    console.log(`포스트 "${result.title}" 생성 완료`);
+  } catch (error) {
+    console.error('스크립트 실행 중 오류 발생:', error);
+    process.exit(1); // 오류 발생 시 종료 코드 1로 종료
+  }
+}
+
+// 스크립트 실행
+run(); 
